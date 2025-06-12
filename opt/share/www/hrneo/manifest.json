@@ -1,0 +1,17 @@
+{
+  "name": "HydraRoute Neo",
+  "short_name": "hr neo",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1b2434",
+  "theme_color": "#fff",
+  "orientation": "any",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "180x180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
