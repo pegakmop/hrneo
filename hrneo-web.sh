@@ -4,6 +4,7 @@
 
 HRNEO_DIR="/opt/share/www/hrneo"
 INDEX_FILE="$HRNEO_DIR/index.php"
+MANIFEST_FILE="$HRNEO_DIR/manifest.json"
 LIGHTTPD_CONF_DIR="/opt/etc/lighttpd/conf.d"
 LIGHTTPD_CONF_FILE="$LIGHTTPD_CONF_DIR/80-hrneo.conf"
 
@@ -23,9 +24,29 @@ echo "[*] Создание директорий..."
 mkdir -p "$HRNEO_DIR"
 mkdir -p "$LIGHTTPD_CONF_DIR"
 
+echo "[*] Создание manifest.json..."
+cat > "$MANIFEST_FILE" << 'EOF'
+{
+  "name": "HydraRoute Neo",
+  "short_name": "hr neo",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1b2434",
+  "theme_color": "#fff",
+  "orientation": "any",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "180x180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
+EOF
+
 echo "[*] Создание index.php..."
 cat > "$INDEX_FILE" << 'EOF'
-
 <?php
 //error_reporting(E_ALL);
 //ini_set('display_errors', 1);
@@ -369,7 +390,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 </body>
 </html>
-
 EOF
 
 echo "[*] Создание конфигурации Lighttpd..."
