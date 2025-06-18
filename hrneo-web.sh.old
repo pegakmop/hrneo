@@ -15,16 +15,28 @@ if ! command -v opkg >/dev/null 2>&1; then
 fi
 
 echo "[*] Обновление списка пакетов..."
-opkg update
+if ! opkg update >/dev/null 2>&1; then
+    echo "❌ Не удалось обновить список пакетов."
+    echo "Возможно у вас не установлены DoT и DoH DNS"
+    exit 1
+fi
 
-echo "[*] Установка Lighttpd + PHP8 + PHP8-cli..."
-opkg install lighttpd lighttpd-mod-cgi php8 php8-cgi php8-cli php8-mod-curl lighttpd-mod-setenv lighttpd-mod-redirect php8-mod-session lighttpd-mod-rewrite jq php8-mod-openssl
+echo "[*] Установка Lighttpd и PHP8..."
+if ! opkg install lighttpd lighttpd-mod-cgi lighttpd-mod-setenv lighttpd-mod-redirect lighttpd-mod-rewrite php8 php8-cgi php8-cli php8-mod-curl php8-mod-openssl php8-mod-session jq >/dev/null 2>&1; then
+    echo "❌ Ошибка при установке пакетов."
+    exit 1
+fi
 
 echo "[*] Создание директорий..."
 mkdir -p "$HRNEO_DIR"
 mkdir -p "$LIGHTTPD_CONF_DIR"
 
-echo "[*] Создание manifest.json..."
+if [ -f "$MANIFEST_FILE" ]; then
+    echo "[*] Удаление старого manifest.json..."
+    rm "$MANIFEST_FILE"
+fi
+
+echo "[*] Создание нового manifest.json..."
 cat > "$MANIFEST_FILE" << 'EOF'
 {
   "name": "HydraRoute Neo",
@@ -45,18 +57,49 @@ cat > "$MANIFEST_FILE" << 'EOF'
 }
 EOF
 
-echo "[*] Создание index.php..."
+if [ -f "$INDEX_FILE" ]; then
+    echo "[*] Удаление старого index.php..."
+    rm "$INDEX_FILE"
+fi
+
+echo "[*] Создание нового index.php..."
 cat > "$INDEX_FILE" << 'EOF'
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+
+
     if (isset($_POST['run'])) {
-        $output = exec('reboot');
-        echo "<pre>Результат команды neo restart:\n" . htmlspecialchars($output) . "</pre>";
+        $output = exec('/opt/etc/init.d/S99hrneo restart');
+        $message = "<pre>Результат команды neo restart:\n" . htmlspecialchars($output) . "</pre>";
+        //echo "<pre>Результат команды neo restart:\n" . htmlspecialchars($output) . "</pre>";
     }
 $confPath = '/opt/etc/HydraRoute/domain.conf';
 $ipListPath = '/opt/etc/HydraRoute/ip.list';
 $message = '';
+$configFile = '/opt/etc/HydraRoute/hrneo.conf';
+
+function getCIDRState($filePath) {
+    $lines = file($filePath, FILE_IGNORE_NEW_LINES);
+    foreach ($lines as $line) {
+        if (strpos($line, 'CIDR=') === 0) {
+            return trim(explode('=', $line, 2)[1]) === 'true';
+        }
+    }
+    return false; // значение по умолчанию
+}
+
+function toggleCIDR($filePath) {
+    $lines = file($filePath);
+    foreach ($lines as &$line) {
+        if (strpos($line, 'CIDR=') === 0) {
+            $current = trim(explode('=', $line)[1]);
+            $new = ($current === 'true') ? 'false' : 'true';
+            $line = "CIDR=$new\n";
+        }
+    }
+    file_put_contents($filePath, implode('', $lines));
+}
 
 // Читаем конфиг доменов
 $raw = file_get_contents($confPath);
@@ -171,10 +214,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = "❗ Ошибка при сохранении файла.";
             }
         } else {
-            $message = "❗ Группа не выбрана или не найдена.";
+            $message = "❗ Группа не выбрана или не найдена или было переключение CIDR в конфиге hrneo"; // . htmlspecialchars($output) . "";
         }
     }
 }
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggleCIDR'])) {
+    toggleCIDR($configFile);
+    shell_exec('/opt/etc/init.d/S99hrneo restart');
+    $currentCIDR = getCIDRState($configFile); // обновить состояние
+}
+$currentCIDR = getCIDRState($configFile);
 ?>
 
 <!DOCTYPE html>
@@ -315,7 +364,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 
   <nav class="sidebar">
-    <h3><button style="font-size:12px;" onclick="history.back();return false;">HRNeo</button></h3>
+    <h3><button style="font-size:12px;" onclick="history.back();return false;">HRNeo 🔙</button></h3>
     <a href="?policy=__ALL__" class="<?= ($currentPolicy === '__ALL__' ? 'active' : '') ?>">
       ➤ Все группы
     </a>
@@ -326,12 +375,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endforeach; ?>
     <a href="?policy=__IPLIST__" class="<?= ($currentPolicy === '__IPLIST__' ? 'active' : '') ?>">
       ➤ Подсети ip.list
-    </a>
-    <button class="add-new-btn" id="openModalBtn">Добавь группу</button>
-    <p></p>
-    <form method="post">
-        <button type="submit" name="run">⚠️reboot</button>
-    </form>
+    </a> 
+    <p><button class="add-new-btn" id="openModalBtn">Добавь группу</button></p>
+    <p><button onclick="location.reload();" style="padding: 0.5rem 1rem; font-size: 14px;">🔄 Обновить страницу </button></p>
   </nav>
 
   <main>
@@ -349,7 +395,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <p>Выберите группу слева или &laquo;Все группы&raquo; для редактирования доменов.</p> 
       <p>Выберите Подсети слева и &laquo;ip.list&raquo; для редактирования подсетей.</p>
       <p>Для работы подсетей neo stop, сменить CIDR с false на true в hrneo.conf и перезагрузить роутер</p>
-      <p>Тестовый вариант веб интерфейса для проекта HydraRoute Neo сделал @pegakmop для личного использования</p>
+      <p>CIDR сейчас: <strong><?= $currentCIDR ? 'Включен ✅' : 'Выключен ❌' ?></strong></p>
+    <form method="post">
+    <input type="hidden" name="toggleCIDR" value="1">
+    <button type="submit">
+        <?= $currentCIDR ? 'Выключить CIDR' : 'Включить CIDR' ?>
+    </button>
+    </form>
+    <p><form method="post">
+        <button type="submit" name="run">♻️Рестарт HR Neo</button>
+    </form></p>
+    Тестовый вариант веб интерфейса для проекта HydraRoute Neo сделал @pegakmop для личного использования, может быть кому то тоже пригодится
+     <p>
+  <button onclick="window.open('https://yoomoney.ru/to/410012481566554', '_blank')" style="padding: 0.5rem 1rem; font-size: 14px;">
+    💳 поддержать на ЮMoney
+  </button>
+</p>
+<p>
+  <button onclick="window.open('https://www.tinkoff.ru/rm/seroshtanov.aleksey9/HgzXr74936', '_blank')" style="padding: 0.5rem 1rem; font-size: 14px;">
+    💳 поддержать Тинькофф
+  </button>
+</p>
     <?php endif; ?>
   </main>
 
@@ -387,13 +453,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   };
 </script>
-
 </body>
 </html>
+
 EOF
 
 if [ -f "$LIGHTTPD_CONF_FILE" ]; then
-    echo "[*] Удаление старого конфигурационного файла $LIGHTTPD_CONF_FILE..."
+    echo "[*] Удаление конфигурации Lighttpd..."
     rm "$LIGHTTPD_CONF_FILE"
 fi
 
@@ -419,12 +485,16 @@ $SERVER["socket"] == ":88" {
 EOF
 
 echo "[*] Установка прав и перезапуск..."
-
+ln -sf /opt/etc/init.d/S99hrneo /opt/bin/hr
+ln -sf /opt/etc/init.d/S80lighttpd /opt/bin/php
 chmod +x "$INDEX_FILE"
 /opt/etc/init.d/S80lighttpd enable
 /opt/etc/init.d/S80lighttpd restart
-
-echo "HRNeo WebUI create @pegakmop installed"
-echo "Перейдите на http://<IP-роутера>:88"
-echo "Установка завершена. установщик удален."
+echo "[*] Установка завершена."
+echo "[*] Установщик веб панели удален."
 rm "$0"
+echo ""
+echo "HRNeo WebUI create @pegakmop installed"
+echo ""
+echo "Перейдите на http://<IP-роутера>:88"
+echo ""
