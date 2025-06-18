@@ -25,11 +25,11 @@ mkdir -p "$HRNEO_DIR"
 mkdir -p "$LIGHTTPD_CONF_DIR"
 
 if [ -f "$MANIFEST_FILE" ]; then
-    echo "[*] Удаление старого файла $MANIFEST_FILE..."
+    echo "[*] Удаление старого manifest.json..."
     rm "$MANIFEST_FILE"
 fi
 
-echo "[*] Создание manifest.json..."
+echo "[*] Создание нового manifest.json..."
 cat > "$MANIFEST_FILE" << 'EOF'
 {
   "name": "HydraRoute Neo",
@@ -51,11 +51,11 @@ cat > "$MANIFEST_FILE" << 'EOF'
 EOF
 
 if [ -f "$INDEX_FILE" ]; then
-    echo "[*] Удаление старого файла $INDEX_FILE..."
+    echo "[*] Удаление старого index.php..."
     rm "$INDEX_FILE"
 fi
 
-echo "[*] Создание index.php..."
+echo "[*] Создание нового index.php..."
 cat > "$INDEX_FILE" << 'EOF'
 <?php
 error_reporting(E_ALL);
@@ -452,11 +452,11 @@ $currentCIDR = getCIDRState($configFile);
 EOF
 
 if [ -f "$LIGHTTPD_CONF_FILE" ]; then
-    echo "[*] Удаление старого конфигурационного файла $LIGHTTPD_CONF_FILE..."
+    echo "[*] Удаление старой конфигурации Lighttpd..."
     rm "$LIGHTTPD_CONF_FILE"
 fi
 
-echo "[*] Создание конфигурации Lighttpd..."
+echo "[*] Создание новой конфигурации Lighttpd..."
 cat > "$LIGHTTPD_CONF_FILE" << 'EOF'
 server.port := 8088
 server.username := ""
