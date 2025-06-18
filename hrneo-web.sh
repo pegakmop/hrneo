@@ -18,7 +18,7 @@ echo "[*] Обновление списка пакетов..."
 opkg update
 
 echo "[*] Установка Lighttpd + PHP8 + FastCGI..."
-opkg install lighttpd lighttpd-mod-cgi php8 php8-cgi php8-fastcgi php8-cli
+opkg install lighttpd lighttpd-mod-cgi php8 php8-cgi php8-cli
 
 echo "[*] Создание директорий..."
 mkdir -p "$HRNEO_DIR"
@@ -421,4 +421,4 @@ chmod +x "$INDEX_FILE"
 /opt/etc/init.d/S80lighttpd enable
 /opt/etc/init.d/S80lighttpd restart
 
-echo "✅ HRNeo WebUI установлен! Перейдите на http://<IP-роутера>:88"
+echo "✅ HRNeo WebUI установлен! Перейдите на http://<IP-роутера>:88/hrneo/"
