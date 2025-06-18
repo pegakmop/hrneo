@@ -500,16 +500,12 @@ button:hover {
   </nav>
 
   <main>
-  <?php if ($updateNotice): ?>
-    <?= $updateNotice ?>
-  <?php endif; ?>
-
   <?php if ($message): ?>
     <div class="message"><?=htmlspecialchars($message)?></div>
   <?php endif; ?>
-    <?php if ($message): ?>
-      <div class="message"><?=htmlspecialchars($message)?></div>
-    <?php endif; ?>
+  <?php if ($updateNotice): ?>
+    <?= $updateNotice ?>
+  <?php endif; ?>
 
     <?php if ($currentPolicy || $isAll || $isIPList): ?>
       <form method="post">
