@@ -490,8 +490,11 @@ ln -sf /opt/etc/init.d/S80lighttpd /opt/bin/php
 chmod +x "$INDEX_FILE"
 /opt/etc/init.d/S80lighttpd enable
 /opt/etc/init.d/S80lighttpd restart
-
-echo "HRNeo WebUI create @pegakmop installed"
-echo "Перейдите на http://<IP-роутера>:88"
-echo "Установка завершена. установщик удален."
+echo "[*] Установка завершена."
+echo "[*] Установщик веб панели удален."
 rm "$0"
+echo ""
+echo "HRNeo WebUI create @pegakmop installed"
+echo ""
+echo "Перейдите на http://<IP-роутера>:88"
+echo ""
