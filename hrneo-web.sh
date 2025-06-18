@@ -67,6 +67,36 @@ cat > "$INDEX_FILE" << 'EOF'
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+$currentVersion = '0.0.0.1'; // текущая локальная версия
+$remoteVersionUrl = 'https://raw.githubusercontent.com/pegakmop/hrneo/main/version.txt';
+$updateNotice = '';
+$context = stream_context_create(['http' => ['timeout' => 3]]);
+$remoteContent = @file_get_contents($remoteVersionUrl, false, $context);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_update'])) {
+    $updateScript = 'curl -L -s "https://raw.githubusercontent.com/pegakmop/hrneo/refs/heads/main/hrneo-web.sh" > /tmp/hrneo-web.sh && sh /tmp/hrneo-web.sh';
+    shell_exec($updateScript);
+    $message = "✔ Обновление запущено. Перезагрузите страницу через пару секунд.";
+}
+
+if ($remoteContent !== false) {
+    $lines = explode("\n", $remoteContent);
+    $versionInfo = [];
+    foreach ($lines as $line) {
+        $parts = explode('=', trim($line), 2);
+        if (count($parts) == 2) {
+            $versionInfo[trim($parts[0])] = trim($parts[1]);
+        }
+    }
+
+    if (!empty($versionInfo['Version']) && version_compare($versionInfo['Version'], $currentVersion, '>')) {
+        $updateNotice = '<div class="update-banner">'
+                      . '⚠️ <b>Доступно обновление: v' . htmlspecialchars($versionInfo['Version']) . '</b><br>'
+                      . nl2br(htmlspecialchars($versionInfo['Show'])) . '<br><br>'
+                      . '<form method="post"><button type="submit" name="run_update">⬇️ Обновить сейчас</button></form>'
+                      . '</div>';
+    }
+}
     if (isset($_POST['reboot'])) {
         $output = exec('reboot');
         $message = "<pre>Результат команды reboot:\n" . htmlspecialchars($output) . "</pre>";
@@ -382,6 +412,29 @@ button:hover {
   margin-left: 0.5rem;
 }
 
+.update-banner {
+  background: #ff5e5e;
+  color: white;
+  padding: 1rem;
+  border-radius: 5px;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  box-shadow: 0 0 10px #ffaaaa;
+  text-align: center;
+}
+.update-banner button {
+  margin-top: 10px;
+  background: white;
+  color: #ff5e5e;
+  font-weight: bold;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.update-banner button:hover {
+  background: #ffecec;
+}
 
 /* === Мобильная адаптация === */
 @media (max-width: 768px) {
@@ -447,6 +500,13 @@ button:hover {
   </nav>
 
   <main>
+  <?php if ($updateNotice): ?>
+    <?= $updateNotice ?>
+  <?php endif; ?>
+
+  <?php if ($message): ?>
+    <div class="message"><?=htmlspecialchars($message)?></div>
+  <?php endif; ?>
     <?php if ($message): ?>
       <div class="message"><?=htmlspecialchars($message)?></div>
     <?php endif; ?>
@@ -484,7 +544,6 @@ button:hover {
     💳 поддержать Тинькофф
   </button>
 </p>
-<p> альфа версия веб панели: v0.0.0.1 
     <?php endif; ?>
   </main>
 
@@ -524,8 +583,6 @@ button:hover {
 </script>
 </body>
 </html>
-
-
 EOF
 
 if [ -f "$LIGHTTPD_CONF_FILE" ]; then
