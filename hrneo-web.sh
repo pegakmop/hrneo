@@ -48,8 +48,8 @@ EOF
 echo "[*] Создание index.php..."
 cat > "$INDEX_FILE" << 'EOF'
 <?php
-//error_reporting(E_ALL);
-//ini_set('display_errors', 1);
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
     if (isset($_POST['run'])) {
         $output = exec('reboot');
         echo "<pre>Результат команды neo restart:\n" . htmlspecialchars($output) . "</pre>";
