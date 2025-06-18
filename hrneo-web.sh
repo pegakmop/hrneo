@@ -424,4 +424,4 @@ chmod +x "$INDEX_FILE"
 /opt/etc/init.d/S80lighttpd enable
 /opt/etc/init.d/S80lighttpd restart
 
-echo "✅ HRNeo WebUI установлен! Перейдите на http://<IP-роутера>:88/hrneo/"
+echo "✅ HRNeo WebUI create by @pegakmop установлен! Перейдите на http://<IP-роутера>:88"
