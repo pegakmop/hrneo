@@ -225,7 +225,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggleCIDR'])) {
 }
 $currentCIDR = getCIDRState($configFile);
 ?>
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -234,131 +233,205 @@ $currentCIDR = getCIDRState($configFile);
 <link rel="manifest" href="manifest.json">
 <title>HR Neo WebUI created by @pegakmop</title>
 <style>
+  /* === Базовый стиль (ПК и планшеты) === */
+body {
+  background: #1e1e2f;
+  color: #e0e0e0;
+  font-family: 'Roboto', sans-serif;
+  margin: 0; padding: 0;
+  display: flex; height: 100vh;
+}
+
+.sidebar {
+  width: 280px;
+  background: #292c42;
+  padding: 1rem;
+  overflow-y: auto;
+  border-right: 1px solid #444;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar a {
+  display: block;
+  padding: 0.6rem 1rem;
+  color: #aaa;
+  text-decoration: none;
+  margin-bottom: 0.2rem;
+  border-radius: 3px;
+}
+
+.sidebar a.active, .sidebar a:hover {
+  background: #68b0ab;
+  color: #1e1e2f;
+  font-weight: bold;
+}
+
+.add-new-btn {
+  margin-top: auto;
+  background: #68b0ab;
+  color: #1e1e2f;
+  border: none;
+  padding: 0.7rem 1rem;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.add-new-btn:hover {
+  background: #55958f;
+}
+
+main {
+  flex-grow: 1;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+textarea {
+  flex-grow: 1;
+  height: 777px;
+  width: 95%;
+  max-width: 100%;
+  background: #252538;
+  border: 1px solid #444;
+  color: #e0e0e0;
+  font-family: monospace;
+  font-size: 1rem;
+  padding: 0.7rem;
+  resize: none;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  white-space: pre-wrap;
+}
+
+button {
+  background: #68b0ab;
+  color: #1e1e2f;
+  border: none;
+  padding: 0.7rem 1.2rem;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+  align-self: flex-start;
+}
+
+button:hover {
+  background: #55958f;
+}
+
+.message {
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  background: #33394a;
+  color: #68b0ab;
+  font-weight: 500;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+  background-color: #292c42;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #444;
+  width: 300px;
+  border-radius: 6px;
+  color: #e0e0e0;
+  box-shadow: 0 0 10px #68b0ab;
+}
+
+.modal-content label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.modal-content input[type="text"] {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #252538;
+  color: #e0e0e0;
+  font-size: 1rem;
+}
+
+.modal-buttons {
+  margin-top: 1rem;
+  text-align: right;
+}
+
+.modal-buttons button {
+  margin-left: 0.5rem;
+}
+
+
+/* === Мобильная адаптация === */
+@media (max-width: 768px) {
   body {
-    background: #1e1e2f;
-    color: #e0e0e0;
-    font-family: 'Roboto', sans-serif;
-    margin: 0; padding: 0;
-    display: flex; height: 100vh;
+    flex-direction: column;
+    height: auto;
   }
+
   .sidebar {
-    width: 280px;
-    background: #292c42;
-    padding: 1rem;
-    overflow-y: auto;
-    border-right: 1px solid #444;
-    display: flex;
-    flex-direction: column;
-  }
-  .sidebar a {
-    display: block;
-    padding: 0.6rem 1rem;
-    color: #aaa;
-    text-decoration: none;
-    margin-bottom: 0.2rem;
-    border-radius: 3px;
-  }
-  .sidebar a.active, .sidebar a:hover {
-    background: #68b0ab;
-    color: #1e1e2f;
-    font-weight: bold;
-  }
-  .add-new-btn {
-    margin-top: auto;
-    background: #68b0ab;
-    color: #1e1e2f;
-    border: none;
-    padding: 0.7rem 1rem;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    border-radius: 4px;
-    text-align: center;
-  }
-  .add-new-btn:hover {
-    background: #55958f;
-  }
-  main {
-    flex-grow: 1;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-  }
-  textarea {
-    flex-grow: 1;
-    height: 400px;
-    background: #252538;
-    border: 1px solid #444;
-    color: #e0e0e0;
-    font-family: monospace;
-    font-size: 1rem;
-    padding: 0.7rem;
-    resize: none;
-    border-radius: 4px;
-    margin-bottom: 1rem;
-    white-space: pre-wrap;
-  }
-  button {
-    background: #68b0ab;
-    color: #1e1e2f;
-    border: none;
-    padding: 0.7rem 1.2rem;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    border-radius: 4px;
-    align-self: flex-start;
-  }
-  button:hover {
-    background: #55958f;
-  }
-  .message {
-    margin-bottom: 1rem;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    background: #33394a;
-    color: #68b0ab;
-    font-weight: 500;
-  }
-  .modal {
-    display: none; 
-    position: fixed; 
-    z-index: 9999; 
-    left: 0; top: 0; 
-    width: 100%; height: 100%; 
-    overflow: auto; 
-    background-color: rgba(0,0,0,0.6);
-  }
-  .modal-content {
-    background-color: #292c42;
-    margin: 15% auto; 
-    padding: 20px;
-    border: 1px solid #444;
-    width: 300px;
-    border-radius: 6px;
-    color: #e0e0e0;
-    box-shadow: 0 0 10px #68b0ab;
-  }
-  .modal-content label {
-    display: block;
-    margin-bottom: 0.5rem;
-  }
-  .modal-content input[type="text"] {
     width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #444;
+    flex-direction: row;
+    overflow-x: auto;
+    white-space: nowrap;
     padding: 0.5rem;
-    border: 1px solid #444;
-    border-radius: 4px;
-    background: #252538;
-    color: #e0e0e0;
-    font-size: 1rem;
   }
-  .modal-buttons {
-    margin-top: 1rem;
-    text-align: right;
+
+  .sidebar a {
+    display: inline-block;
+    margin-bottom: 0;
+    margin-right: 0.5rem;
+    padding: 0.4rem 0.8rem;
   }
-  .modal-buttons button {
-    margin-left: 0.5rem;
+
+  .add-new-btn {
+    margin-top: 0;
+    margin-left: auto;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.9rem;
   }
+
+  main {
+    padding: 0.5rem;
+  }
+
+  textarea {
+    height: 444px;
+    width: 333px;
+    font-size: 0.9rem;
+    padding: 0.5rem;
+  }
+
+  button {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .modal-content {
+    width: 90%;
+    margin: 30% auto;
+    font-size: 0.95rem;
+  }
+}
 </style>
 </head>
 <body>
@@ -455,7 +528,6 @@ $currentCIDR = getCIDRState($configFile);
 </script>
 </body>
 </html>
-
 EOF
 
 if [ -f "$LIGHTTPD_CONF_FILE" ]; then
