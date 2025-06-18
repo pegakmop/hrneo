@@ -29,7 +29,7 @@ cat > "$MANIFEST_FILE" << 'EOF'
 {
   "name": "HydraRoute Neo",
   "short_name": "hr neo",
-  "start_url": "/",
+  "start_url": "/hrneo/",
   "display": "standalone",
   "background_color": "#1b2434",
   "theme_color": "#fff",
