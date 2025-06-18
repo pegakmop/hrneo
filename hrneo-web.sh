@@ -392,6 +392,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </html>
 EOF
 
+rm "$LIGHTTPD_CONF_FILE"
 echo "[*] Создание конфигурации Lighttpd..."
 cat > "$LIGHTTPD_CONF_FILE" << 'EOF'
 server.port := 8088
