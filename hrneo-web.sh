@@ -24,6 +24,11 @@ echo "[*] Создание директорий..."
 mkdir -p "$HRNEO_DIR"
 mkdir -p "$LIGHTTPD_CONF_DIR"
 
+if [ -f "$MANIFEST_FILE" ]; then
+    echo "[*] Удаление старого файла $MANIFEST_FILE..."
+    rm "$MANIFEST_FILE"
+fi
+
 echo "[*] Создание manifest.json..."
 cat > "$MANIFEST_FILE" << 'EOF'
 {
@@ -44,6 +49,11 @@ cat > "$MANIFEST_FILE" << 'EOF'
   ]
 }
 EOF
+
+if [ -f "$INDEX_FILE" ]; then
+    echo "[*] Удаление старого файла $INDEX_FILE..."
+    rm "$INDEX_FILE"
+fi
 
 echo "[*] Создание index.php..."
 cat > "$INDEX_FILE" << 'EOF'
