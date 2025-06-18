@@ -417,8 +417,6 @@ EOF
 echo "[*] Установка прав и перезапуск..."
 
 chmod +x "$INDEX_FILE"
-/opt/etc/init.d/S80php8-fastcgi enable
-/opt/etc/init.d/S80php8-fastcgi start
 /opt/etc/init.d/S80lighttpd enable
 /opt/etc/init.d/S80lighttpd restart
 
