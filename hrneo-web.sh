@@ -17,10 +17,11 @@ fi
 echo "[*] Обновление списка пакетов..."
 if ! opkg update >/dev/null 2>&1; then
     echo "❌ Не удалось обновить список пакетов."
+    echo "Возможно у вас не установлены DoT и DoH DNS"
     exit 1
 fi
 
-echo "[*] Установка Lighttpd + PHP8 + необходимых модулей..."
+echo "[*] Установка Lighttpd + PHP8 + модули..."
 if ! opkg install lighttpd lighttpd-mod-cgi lighttpd-mod-setenv lighttpd-mod-redirect lighttpd-mod-rewrite php8 php8-cgi php8-cli php8-mod-curl php8-mod-openssl php8-mod-session jq >/dev/null 2>&1; then
     echo "❌ Ошибка при установке пакетов."
     exit 1
@@ -458,11 +459,11 @@ $currentCIDR = getCIDRState($configFile);
 EOF
 
 if [ -f "$LIGHTTPD_CONF_FILE" ]; then
-    echo "[*] Удаление старой конфигурации Lighttpd..."
+    echo "[*] Удаление конфигурации Lighttpd..."
     rm "$LIGHTTPD_CONF_FILE"
 fi
 
-echo "[*] Создание новой конфигурации Lighttpd..."
+echo "[*] Создание конфигурации Lighttpd..."
 cat > "$LIGHTTPD_CONF_FILE" << 'EOF'
 server.port := 8088
 server.username := ""
@@ -484,7 +485,8 @@ $SERVER["socket"] == ":88" {
 EOF
 
 echo "[*] Установка прав и перезапуск..."
-
+ln -sf /opt/etc/init.d/S99hrneo /opt/bin/hr
+ln -sf /opt/etc/init.d/S80lighttpd /opt/bin/php
 chmod +x "$INDEX_FILE"
 /opt/etc/init.d/S80lighttpd enable
 /opt/etc/init.d/S80lighttpd restart
