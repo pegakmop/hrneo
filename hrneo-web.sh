@@ -558,6 +558,7 @@ ln -sf /opt/etc/init.d/S99hrneo /opt/bin/hr
 ln -sf /opt/etc/init.d/S80lighttpd /opt/bin/php
 chmod +x "$INDEX_FILE"
 /opt/etc/init.d/S80lighttpd enable
+/opt/etc/init.d/S80lighttpd stop
 /opt/etc/init.d/S80lighttpd restart
 echo "[*] Установка завершена."
 echo "[*] Установщик веб панели удален."
