@@ -67,8 +67,11 @@ cat > "$INDEX_FILE" << 'EOF'
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-
-
+    if (isset($_POST['reboot'])) {
+        $output = exec('reboot');
+        $message = "<pre>Результат команды reboot:\n" . htmlspecialchars($output) . "</pre>";
+        //echo "<pre>Результат команды neo restart:\n" . htmlspecialchars($output) . "</pre>";
+    }
     if (isset($_POST['run'])) {
         $output = exec('/opt/etc/init.d/S99hrneo restart');
         $message = "<pre>Результат команды neo restart:\n" . htmlspecialchars($output) . "</pre>";
@@ -225,6 +228,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggleCIDR'])) {
 }
 $currentCIDR = getCIDRState($configFile);
 ?>
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -390,46 +394,35 @@ button:hover {
     width: 100%;
     border-right: none;
     border-bottom: 1px solid #444;
-    flex-direction: row;
-    overflow-x: auto;
-    white-space: nowrap;
-    padding: 0.5rem;
+    flex-direction: column; /* <-- ВАЖНО: вернуть вертикальную ориентацию */
+    white-space: normal;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: 300px; /* можно подогнать под высоту экрана */
   }
 
   .sidebar a {
-    display: inline-block;
-    margin-bottom: 0;
-    margin-right: 0.5rem;
-    padding: 0.4rem 0.8rem;
+    display: block;
+    margin: 0.2rem 0;
+    padding: 0.6rem 1rem;
   }
 
   .add-new-btn {
-    margin-top: 0;
-    margin-left: auto;
-    padding: 0.5rem 0.8rem;
-    font-size: 0.9rem;
+    margin-top: 1rem;
+    align-self: flex-start;
   }
 
   main {
-    padding: 0.5rem;
+    padding: 1rem;
   }
 
   textarea {
-    height: 444px;
-    width: 333px;
-    font-size: 0.9rem;
-    padding: 0.5rem;
-  }
-
-  button {
-    font-size: 0.9rem;
-    padding: 0.5rem 1rem;
+    height: 300px;
   }
 
   .modal-content {
     width: 90%;
     margin: 30% auto;
-    font-size: 0.95rem;
   }
 }
 </style>
@@ -438,6 +431,7 @@ button:hover {
 
   <nav class="sidebar">
     <h3><button style="font-size:12px;" onclick="history.back();return false;">HRNeo 🔙</button></h3>
+    <p><button class="add-new-btn" id="openModalBtn">Добавь группу</button></p>
     <a href="?policy=__ALL__" class="<?= ($currentPolicy === '__ALL__' ? 'active' : '') ?>">
       ➤ Все группы
     </a>
@@ -449,7 +443,6 @@ button:hover {
     <a href="?policy=__IPLIST__" class="<?= ($currentPolicy === '__IPLIST__' ? 'active' : '') ?>">
       ➤ Подсети ip.list
     </a> 
-    <p><button class="add-new-btn" id="openModalBtn">Добавь группу</button></p>
     <p><button onclick="location.reload();" style="padding: 0.5rem 1rem; font-size: 14px;">🔄 Обновить страницу </button></p>
   </nav>
 
@@ -465,9 +458,8 @@ button:hover {
         <button type="submit">Сохранить и перезапустить</button>
       </form>
     <?php else: ?>
-      <p>Выберите группу слева или &laquo;Все группы&raquo; для редактирования доменов.</p> 
-      <p>Выберите Подсети слева и &laquo;ip.list&raquo; для редактирования подсетей.</p>
-      <p>Для работы подсетей neo stop, сменить CIDR с false на true в hrneo.conf и перезагрузить роутер</p>
+      <p>Выберите одну из групп или &laquo;Все группы&raquo; для редактирования списка доменов.</p> 
+      <p>Выберите Подсети и &laquo;ip.list&raquo; для редактирования списка подсетей.</p>
       <p>CIDR сейчас: <strong><?= $currentCIDR ? 'Включен ✅' : 'Выключен ❌' ?></strong></p>
     <form method="post">
     <input type="hidden" name="toggleCIDR" value="1">
@@ -476,9 +468,12 @@ button:hover {
     </button>
     </form>
     <p><form method="post">
-        <button type="submit" name="run">♻️Рестарт HR Neo</button>
+        <button type="submit" name="run">♻️Рестарт HydraRoute Neo</button>
     </form></p>
-    Тестовый вариант веб интерфейса для проекта HydraRoute Neo сделал @pegakmop для личного использования, может быть кому то тоже пригодится
+    <form method="post">
+        <button type="submit" name="reboot">♻️Перезагрузить Keenetic</button>
+    </form>
+    <p>Тестовый вариант веб интерфейса для проекта: <a href='https://github.com/Ground-Zerro/HydraRoute/blob/main/Neo/README.md'>HydraRoute Neo<a> сделал для себя <a href='https://t.me/pegakmop'>@pegakmop</a> для личного использования, но подумав немного и решил поделиться и выложил в общий доступ, со временем думаю буду дорабатывать функционал...</p>
      <p>
   <button onclick="window.open('https://yoomoney.ru/to/410012481566554', '_blank')" style="padding: 0.5rem 1rem; font-size: 14px;">
     💳 поддержать на ЮMoney
@@ -528,6 +523,8 @@ button:hover {
 </script>
 </body>
 </html>
+
+
 EOF
 
 if [ -f "$LIGHTTPD_CONF_FILE" ]; then
