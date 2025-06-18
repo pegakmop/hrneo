@@ -18,7 +18,7 @@ echo "[*] Обновление списка пакетов..."
 opkg update
 
 echo "[*] Установка Lighttpd + PHP8 + PHP8-cli..."
-opkg install lighttpd lighttpd-mod-cgi php8 php8-cgi php8-cli php8-mod-curl jq php8-mod-openssl
+opkg install lighttpd lighttpd-mod-cgi php8 php8-cgi php8-cli php8-mod-curl lighttpd-mod-setenv lighttpd-mod-redirect php8-mod-session lighttpd-mod-rewrite jq php8-mod-openssl
 
 echo "[*] Создание директорий..."
 mkdir -p "$HRNEO_DIR"
