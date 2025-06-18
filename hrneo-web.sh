@@ -426,3 +426,5 @@ chmod +x "$INDEX_FILE"
 
 echo "HRNeo WebUI create @pegakmop installed"
 echo "Перейдите на http://<IP-роутера>:88"
+echo "Установка завершена. установщик удален."
+rm "$0"
