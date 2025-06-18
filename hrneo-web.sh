@@ -15,10 +15,16 @@ if ! command -v opkg >/dev/null 2>&1; then
 fi
 
 echo "[*] Обновление списка пакетов..."
-opkg update
+if ! opkg update >/dev/null 2>&1; then
+    echo "❌ Не удалось обновить список пакетов."
+    exit 1
+fi
 
-echo "[*] Установка Lighttpd + PHP8 + PHP8-cli..."
-opkg install lighttpd lighttpd-mod-cgi php8 php8-cgi php8-cli php8-mod-curl lighttpd-mod-setenv lighttpd-mod-redirect php8-mod-session lighttpd-mod-rewrite jq php8-mod-openssl
+echo "[*] Установка Lighttpd + PHP8 + необходимых модулей..."
+if ! opkg install lighttpd lighttpd-mod-cgi lighttpd-mod-setenv lighttpd-mod-redirect lighttpd-mod-rewrite php8 php8-cgi php8-cli php8-mod-curl php8-mod-openssl php8-mod-session jq >/dev/null 2>&1; then
+    echo "❌ Ошибка при установке пакетов."
+    exit 1
+fi
 
 echo "[*] Создание директорий..."
 mkdir -p "$HRNEO_DIR"
