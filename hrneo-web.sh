@@ -589,11 +589,11 @@ fi
 
 echo "[*] Создание конфигурации Lighttpd..."
 cat > "$LIGHTTPD_CONF_FILE" << 'EOF'
-server.port := 8088
+server.port := 8888
 server.username := ""
 server.groupname := ""
 
-$HTTP["host"] =~ "^(.+):8088$" {
+$HTTP["host"] =~ "^(.+):8888$" {
     url.redirect = ( "^/hrneo/" => "http://%1:88" )
     url.redirect-code = 301
 }
