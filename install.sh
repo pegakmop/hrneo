@@ -86,11 +86,11 @@ curl -sL https://raw.githubusercontent.com/pegakmop/hrneo/refs/heads/main/opt/sh
 '
 
 run_with_animation "Настройка Lighttpd" sh -c 'cat > /opt/etc/lighttpd/conf.d/80-hrneo.conf <<EOF
-server.port := 8088
+server.port := 8888
 server.username := ""
 server.groupname := ""
 
-\$HTTP["host"] =~ "^(.+):8088$" {
+\$HTTP["host"] =~ "^(.+):8888$" {
     url.redirect = ( "^/hrneo/" => "http://%1:88" )
     url.redirect-code = 301
 }
