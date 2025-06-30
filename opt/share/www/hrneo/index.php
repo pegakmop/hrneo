@@ -6,7 +6,7 @@
         echo "<pre>Результат команды neo restart:\n" . htmlspecialchars($output) . "</pre>";
     }
 $confPath = '/opt/etc/HydraRoute/domain.conf';
-$ipListPath = '/opt/etc/HydraRoute/ip.list.txt';
+$ipListPath = '/opt/etc/HydraRoute/ip.list';
 $message = '';
 
 // Читаем конфиг доменов
