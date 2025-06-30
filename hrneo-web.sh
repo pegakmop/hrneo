@@ -67,7 +67,7 @@ cat > "$INDEX_FILE" << 'EOF'
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-$currentVersion = '0.0.0.1'; // текущая локальная версия
+$currentVersion = '0.0.0.2'; // текущая локальная версия
 $remoteVersionUrl = 'https://raw.githubusercontent.com/pegakmop/hrneo/main/version.txt';
 $updateNotice = '';
 $context = stream_context_create(['http' => ['timeout' => 3]]);
@@ -75,8 +75,79 @@ $remoteContent = @file_get_contents($remoteVersionUrl, false, $context);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_update'])) {
     $updateScript = 'curl -L -s "https://raw.githubusercontent.com/pegakmop/hrneo/refs/heads/main/hrneo-web.sh" > /tmp/hrneo-web.sh && sh /tmp/hrneo-web.sh';
-    shell_exec($updateScript);
-    $message = "✔ Обновление запущено. Перезагрузите страницу через пару секунд.";
+    
+    // Запускаем обновление в фоне
+    shell_exec($updateScript . ' > /dev/null 2>&1 &');
+    
+    // Перенаправляем на страницу с информацией об обновлении
+    header("Location: ?updating=1");
+    exit;
+}
+
+// Проверяем, показывать ли страницу обновления
+if (isset($_GET['updating'])) {
+    ?>
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Обновление HR Neo WebUI</title>
+    <style>
+    body {
+      background: #1e1e2f;
+      color: #e0e0e0;
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+    .update-message {
+      background: #68b0ab;
+      color: #1e1e2f;
+      padding: 2rem;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      box-shadow: 0 0 20px rgba(104, 176, 171, 0.5);
+    }
+    .spinner {
+      border: 4px solid #292c42;
+      border-top: 4px solid #68b0ab;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 1rem auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    </style>
+    <script>
+    // Перезагружаем страницу через 10 секунд
+    setTimeout(function() {
+        window.location.href = '/';
+    }, 10000);
+    </script>
+    </head>
+    <body>
+    <div class="update-message">
+        <div class="spinner"></div>
+        <h2>✔ Обновление запущено</h2>
+        <p>Пожалуйста, подождите...<br>Страница автоматически перезагрузится через 10 секунд</p>
+        <p><a href="/" style="color: #1e1e2f; text-decoration: underline;">Перезагрузить вручную</a></p>
+    </div>
+    </body>
+    </html>
+    <?php
+    exit;
 }
 
 if ($remoteContent !== false) {
@@ -107,8 +178,28 @@ if ($remoteContent !== false) {
         $message = "<pre>Результат команды neo restart:\n" . htmlspecialchars($output) . "</pre>";
         //echo "<pre>Результат команды neo restart:\n" . htmlspecialchars($output) . "</pre>";
     }
-$confPath = '/opt/etc/HydraRoute/domain.conf';
-$ipListPath = '/opt/etc/HydraRoute/ip.list';
+$confPath = (function() {
+    $lines = @file('/opt/etc/HydraRoute/hrneo.conf', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    if ($lines) {
+        foreach ($lines as $line) {
+            if (strpos(trim($line), 'watchlistPath=') === 0) {
+                return trim(substr($line, strpos($line, '=') + 1));
+            }
+        }
+    }
+    return '/opt/etc/HydraRoute/domain.conf';
+})();
+$ipListPath = (function() {
+    $lines = @file('/opt/etc/HydraRoute/hrneo.conf', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    if ($lines) {
+        foreach ($lines as $line) {
+            if (strpos(trim($line), 'CIDRfile=') === 0) {
+                return trim(substr($line, strpos($line, '=') + 1));
+            }
+        }
+    }
+    return '/opt/etc/HydraRoute/ip.list';
+})();
 $message = '';
 $configFile = '/opt/etc/HydraRoute/hrneo.conf';
 
@@ -483,7 +574,7 @@ button:hover {
 <body>
 
   <nav class="sidebar">
-    <h3><button style="font-size:12px;" onclick="history.back();return false;">HRNeo 🔙</button></h3>
+    <h3><button style="font-size:12px;" onclick="history.back();return false;">HRNeo </button></h3>
     <p><button class="add-new-btn" id="openModalBtn">Добавь группу</button></p>
     <a href="?policy=__ALL__" class="<?= ($currentPolicy === '__ALL__' ? 'active' : '') ?>">
       ➤ Все группы
@@ -496,7 +587,7 @@ button:hover {
     <a href="?policy=__IPLIST__" class="<?= ($currentPolicy === '__IPLIST__' ? 'active' : '') ?>">
       ➤ Подсети ip.list
     </a> 
-    <p><button onclick="location.reload();" style="padding: 0.5rem 1rem; font-size: 14px;">🔄 Обновить страницу </button></p>
+    <p><button onclick="location.reload();" style="padding: 0.5rem 1rem; font-size: 14px;"> Обновить страницу </button></p>
   </nav>
 
   <main>
@@ -532,15 +623,15 @@ button:hover {
     <p>Тестовый вариант веб интерфейса для проекта: <a href='https://github.com/Ground-Zerro/HydraRoute/blob/main/Neo/README.md'>HydraRoute Neo<a> сделал для себя <a href='https://t.me/pegakmop'>@pegakmop</a> для личного использования, но подумав немного и решил поделиться и выложил в общий доступ, со временем думаю буду дорабатывать функционал...</p>
      <p>
   <button onclick="window.open('https://yoomoney.ru/to/410012481566554', '_blank')" style="padding: 0.5rem 1rem; font-size: 14px;">
-    💳 поддержать на ЮMoney
+     поддержать на ЮMoney
   </button>
 </p>
 <p>
   <button onclick="window.open('https://www.tinkoff.ru/rm/seroshtanov.aleksey9/HgzXr74936', '_blank')" style="padding: 0.5rem 1rem; font-size: 14px;">
-    💳 поддержать Тинькофф
+     поддержать Тинькофф
   </button>
 </p>
-<p> текущая версия веб панели: v0.0.0.1
+<p> текущая версия веб панели: v0.0.0.2
     <?php endif; ?>
   </main>
 
