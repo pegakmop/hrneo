@@ -59,7 +59,7 @@ EOF
 
 if [ -f "$INDEX_FILE" ]; then
     echo "[*] Удаление старого index.php..."
-    //rm "$INDEX_FILE"
+    rm "$INDEX_FILE"
 fi
 
 echo "[*] Создание нового index.php..."
