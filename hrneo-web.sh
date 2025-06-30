@@ -607,7 +607,7 @@ button:hover {
     <?php else: ?>
       <p>Выберите одну из групп или &laquo;Все группы&raquo; для редактирования списка доменов.</p> 
       <p>Выберите Подсети и &laquo;ip.list&raquo; для редактирования списка подсетей.</p>
-      <p>CIDR сейчас: <strong><?= $currentCIDR ? 'Включен ✅' : 'Выключен ❌' ?></strong></p>
+      <p>CIDR для работы подсетей ip.list: <strong><?= $currentCIDR ? 'Включен ✅' : 'Выключен ❌' ?></strong></p>
     <form method="post">
     <input type="hidden" name="toggleCIDR" value="1">
     <button type="submit">
