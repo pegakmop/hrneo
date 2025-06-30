@@ -107,5 +107,6 @@ EOF'
 
 run_with_animation "Перезапуск Lighttpd" /opt/etc/init.d/S80lighttpd restart
 
+ip_address=$(ip addr show br0 2>/dev/null | awk '/inet / {print $2}' | cut -d/ -f1 | head -n1)
 echo ""
-echo "✅ HRNeo WebUI установлен. Откройте в браузере: http://<IP-роутера>:88"
+echo "✅ HRNeo WebUI установлен. Откройте в браузере: http://$ip_address:88"
