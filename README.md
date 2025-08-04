@@ -1,6 +1,6 @@
 # hrneo web panel
 
-Установить репозиторий и гидра нео или гидра классик
+Установить репозиторий и пакет маршрутизации гидра нео или гидра классик(с адгуардом)
 ```
 curl -fsSL https://pegakmop.github.io/release/keenetic/install-feed.sh | sh
 ```
